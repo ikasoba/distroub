@@ -1,4 +1,4 @@
-import { ApplicationCommandData } from "discord.js";
+import { ApplicationCommandData, ClientEvents } from "discord.js";
 import { Client } from "discord.js";
 import {
   ApplicationCommandOptionData,
@@ -10,6 +10,7 @@ import "reflect-metadata";
 
 const discordBotSymbol = Symbol("discordBot");
 const commandsSymbol = Symbol("commands");
+const customSymbol = Symbol("customSymbol");
 
 type ArgTypes<F extends (...a: any[]) => any> = F extends (...a: infer A) => any
   ? A
@@ -86,19 +87,49 @@ export function SlashCommand<F extends (...a: any) => any>(
   };
 }
 
+export function ClientEvent<
+  K extends keyof ClientEvents,
+  F extends (...args: ClientEvents[K]) => any
+>(name: K) {
+  return (fn: F, ctx: ClassMethodDecoratorContext<DiscordBot>) => {
+    ctx.addInitializer(function () {
+      if (this[customSymbol] == null) {
+        this[customSymbol] = [];
+      }
+
+      this[customSymbol].push(function () {
+        this.client.on(name, fn as (...evt: any) => any);
+      });
+    });
+
+    return fn;
+  };
+}
+
 export class DiscordBot {
   [commandsSymbol]!: Map<
     string,
     { type: "slashcommand"; command: ApplicationCommandData; fn: Function }
   >;
 
+  [customSymbol]!: ((this: DiscordBot, bot: DiscordBot) => void)[];
+
   constructor(public client: Client) {
     client.on("ready", () => {
       if (this[commandsSymbol] == null) {
         this[commandsSymbol] = new Map();
       }
+
+      if (this[customSymbol] == null) {
+        this[customSymbol] = [];
+      }
+
       const commands = [...this[commandsSymbol].entries()];
       client.application?.commands.set(commands.map((x) => x[1].command));
+
+      for (const f of this[customSymbol]) {
+        f.call(this, this);
+      }
 
       client.on("interactionCreate", (interaction) => {
         if (interaction.isCommand()) {
@@ -114,7 +145,6 @@ export class DiscordBot {
       if (!interaction.isChatInputCommand()) {
         return;
       }
-      console.log(command);
       command.fn(interaction);
     }
   }

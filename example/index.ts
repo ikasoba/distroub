@@ -1,12 +1,13 @@
 import {
   ChatInputCommandInteraction,
   Client,
+  Message,
   ApplicationCommandOptionType as OptionType,
 } from "discord.js";
-import { DiscordBot, SlashCommand } from "../src/index.js";
+import { ClientEvent, DiscordBot, SlashCommand } from "../src/index.js";
 
 const client = new Client({
-  intents: ["GuildMessages", "GuildPresences"],
+  intents: ["GuildMessages", "Guilds", "MessageContent"],
 });
 
 class Bot extends DiscordBot {
@@ -21,10 +22,15 @@ class Bot extends DiscordBot {
   hogeCommand(interaction: ChatInputCommandInteraction, name: string) {
     interaction.reply(`hello, ${name ?? "world"}!`);
   }
+
+  @ClientEvent("messageCreate")
+  onMessage(message: Message) {
+    console.log(message.content);
+  }
 }
 
 const bot = new Bot(client);
 
-client
+await client
   .login(process.env.TOKEN)
   .then(() => console.log("logged in", client.user?.tag));
