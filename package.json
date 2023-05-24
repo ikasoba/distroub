@@ -1,6 +1,10 @@
 {
+  "name": "@ikasoba000/distroub",
+  "version": "0.1.0",
   "type": "module",
+  "main": "src/index.js",
   "scripts": {
+    "prepublish": "tsc --build",
     "example-dev": "nodemon -x node --loader ts-node/esm -r dotenv/config example/index.ts"
   },
   "devDependencies": {
