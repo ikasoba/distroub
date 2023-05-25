@@ -151,7 +151,7 @@ export class DiscordBot {
       if (!interaction.isChatInputCommand()) {
         return;
       }
-      command.fn(interaction);
+      command.fn.call(this, interaction);
     }
   }
 }
