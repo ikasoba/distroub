@@ -32,7 +32,7 @@ type CreateOption<T> = string | undefined extends T
   : boolean | undefined extends T
   ? { type: OptionType.Boolean; required?: false }
   : Channel | undefined extends T
-  ? { type: OptionType.Channel; required: true }
+  ? { type: OptionType.Channel; required?: false }
   : T extends string
   ? { type: OptionType.String; required: true }
   : T extends number

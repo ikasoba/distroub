@@ -29,7 +29,7 @@ class Bot extends DiscordBot {
   hogeCommand(
     interaction: ChatInputCommandInteraction,
     name: string,
-    channel: Channel
+    channel?: Channel
   ) {
     interaction.reply(`hello, ${name ?? "world"}!`);
   }
