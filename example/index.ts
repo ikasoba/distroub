@@ -1,4 +1,5 @@
 import {
+  Channel,
   ChatInputCommandInteraction,
   Client,
   Message,
@@ -18,8 +19,18 @@ class Bot extends DiscordBot {
       description: "some name",
       required: true,
     },
+    {
+      name: "channel",
+      type: OptionType.Channel,
+      description: "some channel",
+      required: true,
+    },
   ])
-  hogeCommand(interaction: ChatInputCommandInteraction, name: string) {
+  hogeCommand(
+    interaction: ChatInputCommandInteraction,
+    name: string,
+    channel: Channel
+  ) {
     interaction.reply(`hello, ${name ?? "world"}!`);
   }
 

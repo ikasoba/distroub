@@ -1,4 +1,4 @@
-import { ApplicationCommandData, ClientEvents } from "discord.js";
+import { ApplicationCommandData, Channel, ClientEvents } from "discord.js";
 import { Client } from "discord.js";
 import {
   ApplicationCommandOptionData,
@@ -31,12 +31,16 @@ type CreateOption<T> = string | undefined extends T
   ? { type: OptionType.Integer | OptionType.Number; required?: false }
   : boolean | undefined extends T
   ? { type: OptionType.Boolean; required?: false }
+  : Channel | undefined extends T
+  ? { type: OptionType.Channel; required: true }
   : T extends string
   ? { type: OptionType.String; required: true }
   : T extends number
   ? { type: OptionType.Integer | OptionType.Number; required: true }
   : T extends boolean
   ? { type: OptionType.Boolean; required: true }
+  : T extends Channel
+  ? { type: OptionType.Channel; required: true }
   : never;
 
 export function SlashCommand<F extends (...a: any) => any>(
@@ -71,7 +75,9 @@ export function SlashCommand<F extends (...a: any) => any>(
               v.type == OptionType.Number ||
               v.type == OptionType.String
             ) {
-              args.push(option?.value);
+              args.push(option.value);
+            } else if (v.type == OptionType.Channel) {
+              args.push(option.channel);
             } else {
               args.push(
                 option[OptionType[v.type].toLowerCase() as keyof typeof option]
