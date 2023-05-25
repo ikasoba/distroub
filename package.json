@@ -1,6 +1,6 @@
 {
   "name": "@ikasoba000/distroub",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "license": "MIT",
   "type": "module",
   "main": "src/index.js",
