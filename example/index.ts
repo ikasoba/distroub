@@ -23,7 +23,7 @@ class Bot extends DiscordBot {
       name: "channel",
       type: OptionType.Channel,
       description: "some channel",
-      required: true,
+      required: false,
     },
   ])
   hogeCommand(
