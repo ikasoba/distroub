@@ -6,7 +6,6 @@ import {
   CommandInteraction,
   ApplicationCommandOptionType as OptionType,
 } from "discord.js";
-import "reflect-metadata";
 
 const discordBotSymbol = Symbol("discordBot");
 const commandsSymbol = Symbol("commands");
