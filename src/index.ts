@@ -55,6 +55,7 @@ export function SlashCommand<F extends (...a: any) => any>(
       description,
       options,
     };
+
     ctx.addInitializer(function () {
       if (!this[commandsSymbol]) {
         this[commandsSymbol] = new Map();
@@ -94,7 +95,7 @@ export function SlashCommand<F extends (...a: any) => any>(
 
 export function ClientEvent<
   K extends keyof ClientEvents,
-  F extends (...args: ClientEvents[K]) => any
+  F extends (...args: ClientEvents[K]) => void
 >(name: K) {
   return (fn: F, ctx: ClassMethodDecoratorContext<DiscordBot>) => {
     ctx.addInitializer(function () {
@@ -103,7 +104,7 @@ export function ClientEvent<
       }
 
       this[customSymbol].push(function () {
-        this.client.on(name, fn as (...evt: any) => any);
+        this.client.on(name, (...args) => fn.call(this, ...args));
       });
     });
 
