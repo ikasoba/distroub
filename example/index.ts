@@ -1,10 +1,4 @@
-import {
-  Channel,
-  ChatInputCommandInteraction,
-  Client,
-  Message,
-  ApplicationCommandOptionType as OptionType,
-} from "discord.js";
+import { ChatInputCommandInteraction, Client } from "discord.js";
 import {
   ClientEvent,
   DiscordBot,
@@ -17,32 +11,49 @@ const client = new Client({
   intents: ["GuildMessages", "Guilds", "MessageContent"],
 });
 
-class Bot extends DiscordBot {
-  @SlashCommand("hello", "send 'hello, {name}!'", [
-    Param(ParamType("string"), "name", "some name"),
-    {
-      name: "channel",
-      type: OptionType.Channel,
-      description: "some channel",
-      required: false,
-    },
+class GreetBot extends DiscordBot {
+  @SlashCommand("hello", "Hello, {name}!", [
+    Param(ParamType("string").optional(), "name", "some name"),
   ])
-  hogeCommand(
-    interaction: ChatInputCommandInteraction,
-    name: string,
-    channel?: Channel
-  ) {
-    interaction.reply(`hello, ${name ?? "world"}!`);
-  }
+  async hello(interaction: ChatInputCommandInteraction, name?: string) {
+    name ??= "world";
 
-  @ClientEvent("messageCreate")
-  onMessage(message: Message) {
-    console.log(message.content);
+    await interaction.deferReply();
+    await interaction.editReply(`Hello, ${name}!`);
   }
 }
 
-const bot = new Bot(client);
+class MyBot extends DiscordBot {
+  constructor(client: Client) {
+    super(client);
 
-await client
-  .login(process.env.TOKEN)
-  .then(() => console.log("logged in", client.user?.tag));
+    this.use(new GreetBot(this.client));
+  }
+
+  @ClientEvent("ready")
+  onReady() {
+    console.info("Bot activated, bot user: ", this.client.user?.tag);
+  }
+
+  // Create /random command
+  @SlashCommand("random", "take a random number", [
+    Param(
+      ParamType("number").optional(),
+      "max",
+      "Upper limit of random number"
+    ),
+  ])
+  async getRandomNumber(
+    interaction: ChatInputCommandInteraction,
+    max?: number
+  ) {
+    max ??= 10;
+
+    await interaction.deferReply();
+    await interaction.editReply("" + Math.floor(Math.random() * max));
+  }
+}
+
+const bot = new MyBot(client);
+
+await bot.login(process.env.TOKEN!);

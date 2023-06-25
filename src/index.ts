@@ -3,6 +3,7 @@ import {
   Channel,
   ClientEvents,
   CommandInteractionOption,
+  Interaction,
   User,
 } from "discord.js";
 import { Client } from "discord.js";
@@ -72,10 +73,11 @@ export function SlashCommand<F extends (...a: any) => any>(
       if (!this[commandsSymbol]) {
         this[commandsSymbol] = new Map();
       }
+
       this[commandsSymbol].set(name, {
         type: "slashcommand",
         command,
-        fn: function (this: any, interaction: ChatInputCommandInteraction) {
+        fn: (interaction: ChatInputCommandInteraction) => {
           const args: any[] = [];
           for (const v of options) {
             const option = interaction.options.get(v.name);
@@ -115,7 +117,7 @@ export function ClientEvent<
         this[customSymbol] = [];
       }
 
-      this[customSymbol].push(function () {
+      this[customSymbol].push(() => {
         this.client.on(name, (...args) => fn.call(this, ...args));
       });
     });
@@ -126,34 +128,57 @@ export function ClientEvent<
 export class DiscordBot {
   [commandsSymbol]!: Map<
     string,
-    { type: "slashcommand"; command: ApplicationCommandData; fn: Function }
+    {
+      type: "slashcommand";
+      command: ApplicationCommandData;
+      fn: (interaction: ChatInputCommandInteraction) => void;
+    }
   >;
 
-  [customSymbol]!: ((this: DiscordBot, bot: DiscordBot) => void)[];
+  [customSymbol]!: ((bot: DiscordBot) => void)[];
+
+  /**
+   * compose bot
+   */
+  use(...bots: DiscordBot[]) {
+    for (const bot of bots) {
+      for (const [k, v] of bot[commandsSymbol]) {
+        if (!this[commandsSymbol].has(k)) {
+          this[commandsSymbol].set(k, v);
+        }
+      }
+
+      this[customSymbol].unshift(...bot[customSymbol]);
+    }
+  }
 
   constructor(public client: Client) {
-    client.on("ready", () => {
-      if (this[commandsSymbol] == null) {
-        this[commandsSymbol] = new Map();
+    if (this[commandsSymbol] == null) {
+      this[commandsSymbol] = new Map();
+    }
+
+    if (this[customSymbol] == null) {
+      this[customSymbol] = [];
+    }
+  }
+
+  async login(token: string) {
+    await this.client.login(token);
+
+    const commands = [...this[commandsSymbol].entries()];
+    this.client.application?.commands.set(commands.map((x) => x[1].command));
+
+    for (const f of this[customSymbol]) {
+      f(this);
+    }
+
+    this.client.on("interactionCreate", (interaction) => {
+      if (interaction.isCommand()) {
+        this.dispatchCommand(interaction);
       }
-
-      if (this[customSymbol] == null) {
-        this[customSymbol] = [];
-      }
-
-      const commands = [...this[commandsSymbol].entries()];
-      client.application?.commands.set(commands.map((x) => x[1].command));
-
-      for (const f of this[customSymbol]) {
-        f.call(this, this);
-      }
-
-      client.on("interactionCreate", (interaction) => {
-        if (interaction.isCommand()) {
-          this.dispatchCommand(interaction);
-        }
-      });
     });
+
+    return token;
   }
 
   dispatchCommand(interaction: CommandInteraction) {
@@ -162,7 +187,7 @@ export class DiscordBot {
       if (!interaction.isChatInputCommand()) {
         return;
       }
-      command.fn.call(this, interaction);
+      command.fn(interaction);
     }
   }
 }

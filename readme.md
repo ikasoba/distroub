@@ -48,7 +48,7 @@ class MyBot extends DiscordBot {
   }
 }
 
-const _ = new MyBot(client);
+const bot = new MyBot(client);
 
-await client.login( ... );
+await bot.login( ... );
 ```
