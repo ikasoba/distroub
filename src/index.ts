@@ -1,4 +1,10 @@
-import { ApplicationCommandData, Channel, ClientEvents } from "discord.js";
+import {
+  ApplicationCommandData,
+  Channel,
+  ClientEvents,
+  CommandInteractionOption,
+  User,
+} from "discord.js";
 import { Client } from "discord.js";
 import {
   ApplicationCommandOptionData,
@@ -6,6 +12,7 @@ import {
   CommandInteraction,
   ApplicationCommandOptionType as OptionType,
 } from "discord.js";
+import { OptionTypeMapping } from "./OptionTypeMapping.js";
 
 const discordBotSymbol = Symbol("discordBot");
 const commandsSymbol = Symbol("commands");
@@ -14,15 +21,16 @@ const customSymbol = Symbol("customSymbol");
 type ArgTypes<F extends (...a: any[]) => any> = F extends (...a: infer A) => any
   ? A
   : [];
+
 type ExcludeTail<A extends any[]> = A extends [any, ...infer R] ? R : [];
+
 type CreateOptionsFromFunc<F extends (...a: any[]) => any> = CreateOptions<
   [...ExcludeTail<ArgTypes<F>>]
 >;
+
 type CreateOptions<A extends any[]> = {
   [K in keyof A]: ApplicationCommandOptionData & CreateOption<A[K]>;
 };
-
-type a = CreateOptionsFromFunc<(...a: any) => any>;
 
 type CreateOption<T> = string | undefined extends T
   ? { type: OptionType.String; required?: false }
@@ -32,6 +40,8 @@ type CreateOption<T> = string | undefined extends T
   ? { type: OptionType.Boolean; required?: false }
   : Channel | undefined extends T
   ? { type: OptionType.Channel; required?: false }
+  : User | undefined extends T
+  ? { type: OptionType.User; required?: false }
   : T extends string
   ? { type: OptionType.String; required: true }
   : T extends number
@@ -40,6 +50,8 @@ type CreateOption<T> = string | undefined extends T
   ? { type: OptionType.Boolean; required: true }
   : T extends Channel
   ? { type: OptionType.Channel; required: true }
+  : T extends User
+  ? { type: OptionType.User; required: true }
   : never;
 
 export function SlashCommand<F extends (...a: any) => any>(
@@ -111,7 +123,6 @@ export function ClientEvent<
     return fn;
   };
 }
-
 export class DiscordBot {
   [commandsSymbol]!: Map<
     string,
@@ -155,3 +166,5 @@ export class DiscordBot {
     }
   }
 }
+
+export * from "./Param.js";

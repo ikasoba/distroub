@@ -5,7 +5,13 @@ import {
   Message,
   ApplicationCommandOptionType as OptionType,
 } from "discord.js";
-import { ClientEvent, DiscordBot, SlashCommand } from "../src/index.js";
+import {
+  ClientEvent,
+  DiscordBot,
+  Param,
+  ParamType,
+  SlashCommand,
+} from "../src/index.js";
 
 const client = new Client({
   intents: ["GuildMessages", "Guilds", "MessageContent"],
@@ -13,12 +19,7 @@ const client = new Client({
 
 class Bot extends DiscordBot {
   @SlashCommand("hello", "send 'hello, {name}!'", [
-    {
-      name: "name",
-      type: OptionType.String,
-      description: "some name",
-      required: true,
-    },
+    Param(ParamType("string"), "name", "some name"),
     {
       name: "channel",
       type: OptionType.Channel,
