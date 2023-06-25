@@ -22,5 +22,13 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/ikasoba/distroub"
-  }
+  },
+  "keywords": [
+    "discord.js",
+    "discord",
+    "slashcommands",
+    "command",
+    "typescript",
+    "decorator"
+  ]
 }
