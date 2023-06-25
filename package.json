@@ -12,11 +12,11 @@
     "dotenv": "^16.0.3",
     "nodemon": "^2.0.22",
     "ts-node": "^10.9.1",
-    "typescript": "5.1.0-dev.20230508",
     "vitest": "^0.31.0"
   },
   "dependencies": {
     "discord.js": "^14.11.0",
-    "reflect-metadata": "^0.1.13"
+    "reflect-metadata": "^0.1.13",
+    "typescript": "^5.1.3"
   }
 }
